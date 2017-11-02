@@ -82,7 +82,7 @@ void UTelemetryComponent::DrawTelemetry(UCanvas* Canvas, float& YL, float& YPos)
 		UObject * OutTargetObject = nullptr;
 
 		UProperty * Property = UTimeAttackFunctionLibrary::RetrieveProperty(GetOwner(), Telemetry, OutTargetObject);
-
+		
 		if (Property != nullptr && OutTargetObject != nullptr) 
 		{
 			UFloatProperty * FloatProp = Cast<UFloatProperty>(Property);
@@ -96,9 +96,12 @@ void UTelemetryComponent::DrawTelemetry(UCanvas* Canvas, float& YL, float& YPos)
 				// Ensure this struct is a Vector
 				if (StructProp != nullptr && StructProp->Struct == TBaseStructure<FVector>::Get())
 				{
+					void* SrcStruct = OutTargetObject;
+					FVector* SrcVectorPtr = StructProp->ContainerPtrToValuePtr<FVector>(SrcStruct, 0);
+
 					// Set Vector to value
 					FVector OutVector;
-					StructProp->CopyCompleteValue(&OutVector, OutTargetObject);
+					StructProp->CopyCompleteValue(&OutVector, SrcVectorPtr);
 					Value = OutVector.Size();
 				}
 			}
