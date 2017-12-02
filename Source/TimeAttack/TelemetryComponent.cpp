@@ -71,7 +71,7 @@ void UTelemetryComponent::DrawTelemetry(UCanvas* Canvas, float& YL, float& YPos)
 	{
 		float Value = 0.f;
 
-		// TODO: Get the correct property's value using reflection.
+		// Get the correct property's value using reflection.
 		// Support the following queries:
 		// 1) VehicleSimData.ChassisSimData.Speed
 		// 2) VehicleSimData.WheelSimData[i].Speed
@@ -79,9 +79,15 @@ void UTelemetryComponent::DrawTelemetry(UCanvas* Canvas, float& YL, float& YPos)
 		// 4) VehicleSimData.WheelSimData[i].RotationAngle
 		// 5) VehicleSimData.WheelSimData[i].SuspensionOffset
 
+		FString Path, Metric;
+		if (!Telemetry.Split("_", &Path, &Metric)) // Escape char for metrics
+		{
+			Path = Telemetry;
+		}
+
 		UObject * OutTargetObject = nullptr;
 
-		UProperty * Property = UTimeAttackFunctionLibrary::RetrieveProperty(GetOwner(), Telemetry, OutTargetObject);
+		UProperty * Property = UTimeAttackFunctionLibrary::RetrieveProperty(GetOwner(), Path, OutTargetObject);
 		
 		if (Property != nullptr && OutTargetObject != nullptr) 
 		{
@@ -104,6 +110,28 @@ void UTelemetryComponent::DrawTelemetry(UCanvas* Canvas, float& YL, float& YPos)
 					StructProp->CopyCompleteValue(&OutVector, SrcVectorPtr);
 					Value = OutVector.Size();
 				}
+			}
+
+			// Check what metric has been used and tweak the value accordingly
+			if (Metric.Equals("cm/s"))
+			{
+				Value = Value * 100;
+			}
+			else if (Metric.Equals("km/h"))
+			{
+				Value = Value * 3.6;
+			}
+			else if (Metric.Equals("cm"))
+			{
+				Value = Value * 100;
+			}
+			else if (Metric.Equals("mm"))
+			{
+				Value = Value * 1000;
+			}
+			else if (Metric.Equals("rad"))
+			{
+				Value = FMath::DegreesToRadians(Value);
 			}
 			
 			TelemetryValues.Add(Value);
